@@ -8,16 +8,17 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/swipe_menu_ctl"
         android:layout_width="wrap_content"
-        android:layout_height="80dp">
+        android:layout_height="match_parent">
 
         <ImageButton
             android:id="@+id/share_note_btn"
             android:layout_width="70dp"
-            android:layout_height="0dp"
+            android:layout_height="78dp"
             android:background="@color/mineShaft"
             android:contentDescription="@string/share_note_btn_content_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/delete_note_btn"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -26,11 +27,12 @@
         <ImageButton
             android:id="@+id/delete_note_btn"
             android:layout_width="70dp"
-            android:layout_height="0dp"
+            android:layout_height="78dp"
             android:background="@color/chestnutRose"
             android:contentDescription="@string/delete_note_btn_content_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/share_note_btn"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_trash_32dp_alabaster" />
@@ -77,7 +79,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/menlo_regular"
-            android:maxLines="2"
+            android:maxLines="1"
             android:text="Preview"
             android:textColor="@color/silverChalice"
             android:textSize="14sp"

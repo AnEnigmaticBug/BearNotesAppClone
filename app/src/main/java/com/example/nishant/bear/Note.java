@@ -35,6 +35,18 @@ class NoteMetaData {
         this.title = title;
     }
 
+    @Override
+    public String toString() {
+        return "NoteMetaData{" +
+                "id=" + id +
+                ", tags=" + tags +
+                ", title='" + title + '\'' +
+                ", preview='" + preview + '\'' +
+                ", date='" + date + '\'' +
+                ", contributors=" + contributors +
+                '}';
+    }
+
     public long getId() {
         return id;
     }

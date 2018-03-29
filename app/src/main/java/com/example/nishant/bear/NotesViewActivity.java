@@ -22,13 +22,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class NotesViewActivity extends AppCompatActivity {
 
     DatabaseReference metaDataDirRef = FirebaseDatabase.getInstance().getReference().child("MetaData");
-    List<NoteMetaData> noteMetaDataList = new ArrayList<>();
+    DatabaseReference tagDirRef = FirebaseDatabase.getInstance().getReference().child("Tags");
+    List<NoteMetaData> completeNoteMetaDataList = new ArrayList<>();
+    List<NoteMetaData> filteredNoteMetaDataList = new ArrayList<>();
+    List<String> completeTagList = new ArrayList<>();
 
     private String currentTag = "#Notes";
     private TextView currentTagNameLBL;
@@ -38,21 +46,56 @@ public class NotesViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes_view);
+
         currentTagNameLBL = findViewById(R.id.current_tag_name_lbl);
         currentTagNameLBL.setText(currentTag);
+
         drawerLayout = findViewById(R.id.drawer_layout);
+
+        final RecyclerView notesRCY = findViewById(R.id.notes_rcy);
+        notesRCY.setAdapter(new NotesRecyclerAdapter());
+        notesRCY.setLayoutManager(new LinearLayoutManager(this));
+
+        final RecyclerView tagsRCY = findViewById(R.id.tags_rcy);
+        tagsRCY.setAdapter(new TagsRecyclerAdapter());
+        tagsRCY.setLayoutManager(new LinearLayoutManager(this));
+
         metaDataDirRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                completeNoteMetaDataList.clear();
+                filteredNoteMetaDataList.clear();
                 for(DataSnapshot userData: dataSnapshot.getChildren()) {
                     NoteMetaData metaData = new NoteMetaData();
                     if(!userData.hasChild("Title")) {
                         Log.d("Firebase", "Title DNE");
                     }
+                    metaData.setId(Integer.parseInt(userData.getKey()));
                     metaData.setTitle((String)userData.child("Title").getValue());
                     metaData.setPreview((String)userData.child("Preview").getValue());
-                    noteMetaDataList.add(metaData);
+                    metaData.setDate((String)userData.child("DateModified").getValue());
+                    List<String> tags = new ArrayList<>();
+                    for(DataSnapshot tagData : userData.child("Tags").getChildren()) {
+                        tags.add((String)tagData.getValue());
+                    }
+                    metaData.setTags(tags);
+                    completeNoteMetaDataList.add(metaData);
                 }
+                Collections.sort(completeNoteMetaDataList, new Comparator<NoteMetaData>() {
+                    @Override
+                    public int compare(NoteMetaData d1, NoteMetaData d2) {
+                        if(!d1.getDate().substring(6, 8).equals(d2.getDate().substring(6, 8))) {
+                            return -d1.getDate().substring(6, 8).compareTo(d2.getDate().substring(6, 8));
+                        }
+                        if(!d1.getDate().substring(3, 5).equals(d2.getDate().substring(3, 5))) {
+                            return -d1.getDate().substring(3, 5).compareTo(d2.getDate().substring(3, 5));
+                        }
+                        return -d1.getDate().compareTo(d2.getDate());
+                    }
+                });
+                changeCurrentTag(currentTag);
+                ((NotesRecyclerAdapter) notesRCY.getAdapter()).setMetaDataList(filteredNoteMetaDataList);
+                notesRCY.getAdapter().notifyDataSetChanged();
             }
 
             @Override
@@ -60,13 +103,25 @@ public class NotesViewActivity extends AppCompatActivity {
 
             }
         });
-        RecyclerView notesRCY = findViewById(R.id.notes_rcy);
-        notesRCY.setAdapter(new NotesRecyclerAdapter());
-        ((NotesRecyclerAdapter)notesRCY.getAdapter()).setMetaDataList(noteMetaDataList);
-        notesRCY.setLayoutManager(new LinearLayoutManager(this));
-        RecyclerView tagsRCY = findViewById(R.id.tags_rcy);
-        tagsRCY.setAdapter(new TagsRecyclerAdapter());
-        tagsRCY.setLayoutManager(new LinearLayoutManager(this));
+        tagDirRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                completeTagList.clear();
+                for(DataSnapshot tagData: dataSnapshot.getChildren()) {
+                    String tagName = (String)tagData.getValue();
+                    if(!(tagName.equals("#Notes") || tagName.equals("#Trash"))) {
+                        completeTagList.add((String)tagData.getValue());
+                    }
+                }
+                ((TagsRecyclerAdapter)tagsRCY.getAdapter()).setTagList(completeTagList);
+                tagsRCY.getAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void onMenuBTNClicked(View view) {
@@ -114,6 +169,7 @@ public class NotesViewActivity extends AppCompatActivity {
 
     public void onTrashBarLINClicked(View view) {
         changeCurrentTag("#Trash");
+
     }
 
     public void onSettingsBTNClicked(View view) {
@@ -126,13 +182,51 @@ public class NotesViewActivity extends AppCompatActivity {
         currentTag = newTag;
         currentTagNameLBL.setText(currentTag);
         drawerLayout.closeDrawer(Gravity.START);
+        filteredNoteMetaDataList.clear();
+        for(NoteMetaData noteMetaData : completeNoteMetaDataList) {
+            if(noteMetaData.getTags().contains(currentTag)) {
+                filteredNoteMetaDataList.add(noteMetaData);
+            }
+        }
+        RecyclerView notesRCY = findViewById(R.id.notes_rcy);
+        ((NotesRecyclerAdapter)notesRCY.getAdapter()).setMetaDataList(filteredNoteMetaDataList);
+        notesRCY.getAdapter().notifyDataSetChanged();
+    }
+
+    private void removeTag(final String tag) {
+        for(int i = 0; i < completeTagList.size(); ++i) {
+            if(completeTagList.get(i).equals(tag)) {
+                completeTagList.remove(i);
+                RecyclerView tagsRCY = findViewById(R.id.tags_rcy);
+                tagsRCY.getAdapter().notifyDataSetChanged();
+                break;
+            }
+        }
+        tagDirRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot tagData : dataSnapshot.getChildren()) {
+                    if(tagData.getValue().equals(tag)) {
+                        tagData.getRef().removeValue();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdapter.NotesViewHolder> {
 
-        private List<NoteMetaData> metaDataList;
+        private List<NoteMetaData> metaDataList = new ArrayList<>();
 
         void setMetaDataList(List<NoteMetaData> metaDataList) {
+            if(metaDataList == null) {
+                this.metaDataList = new ArrayList<>();
+            }
             this.metaDataList = metaDataList;
         }
 
@@ -143,7 +237,7 @@ public class NotesViewActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(NotesViewHolder holder, int position) {
-            holder.getDateModifiedLBL().setText("3M");
+            holder.getDateModifiedLBL().setText(getDateText(metaDataList.get(position).getDate()));
             holder.getTitleLBL().setText(metaDataList.get(position).getTitle());
             holder.getPreviewLBL().setText(metaDataList.get(position).getPreview());
         }
@@ -151,6 +245,32 @@ public class NotesViewActivity extends AppCompatActivity {
         @Override
         public int getItemCount() {
             return metaDataList.size();
+        }
+
+        private String getDateText(String date) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+            Date todaysDate = new Date();
+            try {
+                Date modificationDate = dateFormat.parse(date);
+                long diff = todaysDate.getTime() - modificationDate.getTime();
+                long dayDiff = ((diff / 1000) / 3600) / 24;
+                if(dayDiff > 365) {
+                    long yearDiff = dayDiff / 365;
+                    return String.valueOf(yearDiff) + "Y";
+                }
+                if(dayDiff > 30) {
+                    long monthDiff = dayDiff / 30;
+                    return String.valueOf(monthDiff) + "M";
+                }
+                if(dayDiff > 7) {
+                    long weekDiff = dayDiff / 7;
+                    return String.valueOf(weekDiff) + "W";
+                }
+                return String.valueOf(dayDiff) + "D";
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return "?C";
         }
 
         class NotesViewHolder extends RecyclerView.ViewHolder {
@@ -187,6 +307,28 @@ public class NotesViewActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         ((SwipeRevealLayout)itemView).close(true);
+                        long id = filteredNoteMetaDataList.get(getAdapterPosition()).getId();
+                        List<String> tags = filteredNoteMetaDataList.get(getAdapterPosition()).getTags();
+                        for(int i = 0; i < completeNoteMetaDataList.size(); ++i) {
+                            if(completeNoteMetaDataList.get(i).getId() == id) {
+                                completeNoteMetaDataList.remove(i);
+                                break;
+                            }
+                        }
+                        changeCurrentTag(currentTag);
+                        for(String tag : tags) {
+                            Boolean found = false;
+                            for(NoteMetaData metaData : completeNoteMetaDataList) {
+                                if(metaData.getTags().contains(tag)) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if(!found) {
+                                removeTag(tag);
+                            }
+                        }
+                        metaDataDirRef.child(String.valueOf(id)).removeValue();
                     }
                 });
             }
@@ -207,6 +349,17 @@ public class NotesViewActivity extends AppCompatActivity {
 
     class TagsRecyclerAdapter extends RecyclerView.Adapter<TagsRecyclerAdapter.TagsViewHolder> {
 
+        List<String> tagList = new ArrayList<>();
+
+        public void setTagList(List<String> tagList) {
+            if(tagList == null) {
+                Log.d("Firebase", "Null Tag List");
+            }
+            else {
+                this.tagList = tagList;
+            }
+        }
+
         @Override
         public TagsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             return new TagsViewHolder(getLayoutInflater().inflate(R.layout.row_tags_recycler, parent, false));
@@ -214,12 +367,12 @@ public class NotesViewActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(TagsViewHolder holder, int position) {
-            holder.getTagNameLBL().setText("# TagName" + position);
+            holder.getTagNameLBL().setText(tagList.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return 10;
+            return tagList.size();
         }
 
         class TagsViewHolder extends RecyclerView.ViewHolder {
