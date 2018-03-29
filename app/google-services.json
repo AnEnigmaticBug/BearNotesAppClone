@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "6829640742",
+    "firebase_url": "https://bear-notes-app.firebaseio.com",
+    "project_id": "bear-notes-app",
+    "storage_bucket": "bear-notes-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6829640742:android:b6f1a2cbe3176d09",
+        "android_client_info": {
+          "package_name": "com.example.nishant.bear"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6829640742-c0mda3ivlde48r11tf1qp33h66js9oln.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nishant.bear",
+            "certificate_hash": "25380b1404b052fe19b1ada09908b1972ac707e9"
+          }
+        },
+        {
+          "client_id": "6829640742-2qldbar51nj39n80q9g31ekfqbpfd42k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUCY2ZilNWD_UbcPLy7zjy_Yz7oji8vo8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6829640742-2qldbar51nj39n80q9g31ekfqbpfd42k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,4 @@
+<vector android:height="24dp" android:viewportHeight="50.0"
+    android:viewportWidth="50.0" android:width="32dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="@color/silverChalice" android:pathData="M12.81,2C12.34,2.09 11.99,2.51 12,3L12,47C12,47.36 12.19,47.69 12.5,47.87C12.8,48.05 13.19,48.05 13.5,47.88L25,41.16L36.5,47.88C36.81,48.05 37.2,48.05 37.5,47.87C37.81,47.69 38,47.36 38,47L38,3C38,2.45 37.55,2 37,2L13,2C12.97,2 12.94,2 12.91,2C12.88,2 12.84,2 12.81,2ZM14,4L36,4L36,45.25L25.5,39.13C25.19,38.95 24.81,38.95 24.5,39.13L14,45.25Z"/>
+</vector>

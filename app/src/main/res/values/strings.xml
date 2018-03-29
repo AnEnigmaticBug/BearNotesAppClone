@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Bear</string>
+    <string name="current_tag_lbl_text">#Notes</string>
+    <string name="menu_btn_content_description">Hamburger Menu</string>
+    <string name="search_btn_content_description">Search Notes</string>
+    <string name="search_field_txt_hint">Search all your Notes</string>
+    <string name="cancel_search_btn_text">Cancel</string>
+    <string name="add_note_btn_content_description">Add a Note</string>
+    <string name="share_note_btn_content_description">Share Note</string>
+    <string name="delete_note_btn_content_description">Delete Note</string>
+    <string name="notes_bar_lbl_text">#Notes</string>
+    <string name="trash_bar_lbl_text">#Trash</string>
+    <string name="notes_bar_img_content_description">All Notes</string>
+    <string name="trash_bar_img_content_description">Trash Can</string>
+</resources>
